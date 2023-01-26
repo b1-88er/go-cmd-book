@@ -1,16 +1,18 @@
 package main
 
 import (
-	"bufio"
+	"bufio" // read text
 	"flag"
 	"fmt"
-	"io"
+	"io" // io Reader interface
 	"os"
 )
 
 func count(r io.Reader, countBytes bool, countLines bool) int {
+	// a scanner is used to read text from a reader such a files
 	scanner := bufio.NewScanner(r)
 	if !countLines {
+		// split by words, default is by lines
 		scanner.Split(bufio.ScanWords)
 	}
 	if countBytes {
