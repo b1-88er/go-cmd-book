@@ -11,9 +11,9 @@ const todoFileName = ".todo.json"
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "%s tool.", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "%s tool.\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2020\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
 	}
 	task := flag.String("task", "", "Task to be included in the Todo list")
