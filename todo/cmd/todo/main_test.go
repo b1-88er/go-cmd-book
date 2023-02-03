@@ -50,8 +50,9 @@ func TestTodoCLI(t *testing.T) {
 	t.Run("ListTasks", func(t *testing.T) {
 		cmd := exec.Command(cmdPath, "-list")
 		out, err := cmd.CombinedOutput()
+		expected := fmt.Sprintf(" 1: %s\n", task)
 
 		assert.Nil(t, err)
-		assert.Equal(t, task+"\n", string(out))
+		assert.Equal(t, expected, string(out))
 	})
 }
