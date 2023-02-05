@@ -12,22 +12,26 @@ import (
 
 var todoFileName = ".todo.json"
 
-func getTask(r io.Reader, args ...string) (string, error) {
+func getTask(r io.Reader, args ...string) ([]string, error) {
 	if len(args) > 0 {
-		return strings.Join(args, " "), nil
+		return []string{strings.Join(args, " ")}, nil
 	}
+
+	tasks := []string{}
 	s := bufio.NewScanner(r)
-	s.Scan()
+	for s.Scan() {
+		if err := s.Err(); err != nil {
+			return nil, err
+		}
 
-	if err := s.Err(); err != nil {
-		return "", err
+		if len(s.Text()) == 0 {
+			return nil, fmt.Errorf("task cannot be blank")
+
+		}
+		tasks = append(tasks, s.Text())
+
 	}
-
-	if len(s.Text()) == 0 {
-		return "", fmt.Errorf("task cannot be blank")
-	}
-
-	return s.Text(), nil
+	return tasks, nil
 }
 
 func main() {
@@ -76,12 +80,14 @@ func main() {
 		}
 
 	case *add:
-		t, err := getTask(os.Stdin, flag.Args()...)
+		tasks, err := getTask(os.Stdin, flag.Args()...)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		l.Add(t)
+		for _, task := range tasks {
+			l.Add(task)
+		}
 
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
