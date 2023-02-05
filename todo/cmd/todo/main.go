@@ -37,6 +37,7 @@ func main() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
 		flag.PrintDefaults()
 	}
+	verbose := flag.Bool("verbose", false, "verbose output")
 	add := flag.Bool("add", false, "Add task to the Todo List")
 	task := flag.String("task", "", "Task to be included in the Todo list")
 	list := flag.Bool("list", false, "List of all tasks")
@@ -56,7 +57,13 @@ func main() {
 
 	switch {
 	case *list:
-		fmt.Print(l)
+		if *verbose {
+			for _, t := range *l {
+				fmt.Println(t)
+			}
+		} else {
+			fmt.Print(l)
+		}
 	case *complete > 0:
 		if err := l.Complete(*complete); err != nil {
 			fmt.Fprintln(os.Stderr, err)
