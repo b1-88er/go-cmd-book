@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -54,5 +55,15 @@ func TestTodoCLI(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, expected, string(out))
+	})
+
+	t.Run("Add task from the STDIN", func(t *testing.T) {
+		const task = "task from stdin"
+		cmd := exec.Command(cmdPath, "-add")
+		cmdStdIn, err := cmd.StdinPipe()
+		cmdStdIn.Close()
+		assert.Nil(t, err)
+		io.WriteString(cmdStdIn, task)
+		assert.NotNil(t, cmd.Run())
 	})
 }
