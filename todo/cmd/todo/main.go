@@ -41,6 +41,7 @@ func main() {
 	task := flag.String("task", "", "Task to be included in the Todo list")
 	list := flag.Bool("list", false, "List of all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
+	delete := flag.Int("delete", 0, "Delete item of a given index")
 	flag.Parse()
 
 	if os.Getenv("TODO_FILENAME") != "" {
@@ -86,6 +87,16 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case *delete > 0:
+		if err := l.Delete(*delete); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
 	default:
 		fmt.Fprintln(os.Stderr, "No flags provided")
 		os.Exit(1)

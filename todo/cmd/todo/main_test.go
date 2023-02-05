@@ -57,6 +57,17 @@ func TestTodoCLI(t *testing.T) {
 		assert.Equal(t, expected, string(out))
 	})
 
+	t.Run("DeleteTask", func(t *testing.T) {
+		cmd := exec.Command(cmdPath, "-delete", "1")
+		assert.Nil(t, cmd.Run())
+
+		out, err := exec.Command(cmdPath, "-list").CombinedOutput()
+
+		assert.Nil(t, err)
+		assert.Equal(t, "", string(out))
+
+	})
+
 	t.Run("Add task from the STDIN", func(t *testing.T) {
 		const task = "task from stdin"
 		cmd := exec.Command(cmdPath, "-add")
