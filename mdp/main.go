@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday/v2"
 )
 
 const (
@@ -50,4 +54,19 @@ func run(filename string) error {
 	outName := fmt.Sprintf("%s.html", filepath.Base(filename))
 	fmt.Println(outName)
 	return saveHTML(outName, htmlData)
+}
+
+func parseContent(input []byte) []byte {
+	output := blackfriday.Run(input)
+	body := bluemonday.UGCPolicy().SanitizeBytes(output)
+
+	var buffer bytes.Buffer
+	buffer.WriteString(header)
+	buffer.Write(body)
+	buffer.WriteString(footer)
+	return buffer.Bytes()
+}
+
+func saveHTML(outFname string, data []byte) error {
+	return ioutil.WriteFile(outFname, data, 0644)
 }
