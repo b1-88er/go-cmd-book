@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +31,9 @@ func TestParseContent(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	assert.Nil(t, run(inputFile))
+	var mockStdout bytes.Buffer
+	assert.Nil(t, run(inputFile, &mockStdout))
+	resultFile := strings.TrimSpace(mockStdout.String())
 	result, err := ioutil.ReadFile(resultFile)
 	assert.Nil(t, err)
 
