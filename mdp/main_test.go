@@ -32,7 +32,7 @@ func TestParseContent(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	var mockStdout bytes.Buffer
-	assert.Nil(t, run(inputFile, &mockStdout))
+	assert.Nil(t, run(inputFile, &mockStdout, true))
 	resultFile := strings.TrimSpace(mockStdout.String())
 	result, err := ioutil.ReadFile(resultFile)
 	assert.Nil(t, err)
