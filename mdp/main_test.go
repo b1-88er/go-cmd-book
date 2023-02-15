@@ -20,7 +20,9 @@ func TestParseContent(t *testing.T) {
 	input, err := ioutil.ReadFile(inputFile)
 	assert.Nil(t, err)
 
-	result := parseContent(input)
+	result, err := parseContent(input, "")
+
+	assert.Nil(t, err)
 
 	expected, err := ioutil.ReadFile(goldenFile)
 
@@ -32,7 +34,7 @@ func TestParseContent(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	var mockStdout bytes.Buffer
-	assert.Nil(t, run(inputFile, &mockStdout, true))
+	assert.Nil(t, run(inputFile, "", &mockStdout, true))
 	resultFile := strings.TrimSpace(mockStdout.String())
 	result, err := ioutil.ReadFile(resultFile)
 	assert.Nil(t, err)
