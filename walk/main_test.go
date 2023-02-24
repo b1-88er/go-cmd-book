@@ -66,11 +66,14 @@ func TestRunDelExtension(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			buffer := bytes.Buffer{}
+			logBuffer := bytes.Buffer{}
 			tempDir, cleanup := createTempDir(t, map[string]int{
 				testCase.cfg.ext:     testCase.nDelete,
 				testCase.extNoDelete: testCase.nNoDelete,
 			})
 			defer cleanup()
+
+			testCase.cfg.wLog = &logBuffer
 
 			if err := run(tempDir, &buffer, testCase.cfg); err != nil {
 				t.Fatal(err)
@@ -81,6 +84,11 @@ func TestRunDelExtension(t *testing.T) {
 			filesLeft, err := ioutil.ReadDir(tempDir)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.nNoDelete, len(filesLeft))
+
+			if testCase.cfg.del {
+				lines := bytes.Split(logBuffer.Bytes(), []byte("\n"))
+				assert.Equal(t, testCase.nDelete+1, len(lines))
+			}
 		})
 	}
 }
