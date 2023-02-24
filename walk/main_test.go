@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,6 +29,45 @@ func createTempDir(t *testing.T, files map[string]int) (dirname string, cleanup 
 	return tempDir, func() { os.RemoveAll(tempDir) }
 }
 
+func TestRunArchive(t *testing.T) {
+	testCases := []struct {
+		name         string
+		cfg          config
+		extNoArchive string
+		nArchive     int
+		nNoArchive   int
+	}{
+		{name: "ArchiveExtentionNoMatch", cfg: config{ext: ".log"}, extNoArchive: ".gz", nArchive: 0, nNoArchive: 10},
+		{name: "ArchiveExtentionMatch", cfg: config{ext: ".log"}, extNoArchive: "", nArchive: 10, nNoArchive: 0},
+		{name: "ArchiveExtentionMixed", cfg: config{ext: ".log"}, extNoArchive: ".gz", nArchive: 5, nNoArchive: 5},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			buffer := bytes.Buffer{}
+			tempDir, cleanup := createTempDir(t, map[string]int{
+				testCase.cfg.ext:      testCase.nArchive,
+				testCase.extNoArchive: testCase.nNoArchive,
+			})
+			defer cleanup()
+			archiveDir, cleanupArchive := createTempDir(t, nil)
+			defer cleanupArchive()
+			testCase.cfg.archive = archiveDir
+			assert.Nil(t, run(tempDir, &buffer, testCase.cfg))
+			pattern := filepath.Join(tempDir, fmt.Sprintf("*%s", testCase.cfg.ext))
+			expFiles, err := filepath.Glob(pattern)
+			assert.Nil(t, err)
+			expOut := strings.Join(expFiles, "\n")
+			res := strings.TrimSpace(buffer.String())
+			assert.Equal(t, expOut, res)
+
+			filesArchived, err := ioutil.ReadDir(archiveDir)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.nArchive, len(filesArchived))
+
+		})
+	}
+}
 func TestRunDelExtension(t *testing.T) {
 	testCases := []struct {
 		name        string
