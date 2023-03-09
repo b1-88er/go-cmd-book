@@ -170,7 +170,6 @@ func TestRun(t *testing.T) {
 		{"FilterExtensionSizeNoMatch", "testdata", config{ext: ".log", size: 20, list: true}, ""},
 		{"FilterExtensionNoMatch", "testdata", config{ext: ".gz", size: 0, list: true}, ""},
 	}
-
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			buffer := bytes.Buffer{}
@@ -179,4 +178,28 @@ func TestRun(t *testing.T) {
 			assert.Equal(t, testCase.expected, buffer.String())
 		})
 	}
+}
+
+func TestArrays(t *testing.T) {
+	// append
+	x := []int{1, 2, 3}
+	x = append(x, 19)
+	x = append(x, x...)
+	assert.Equal(t, x, []int{1, 2, 3, 19, 1, 2, 3, 19})
+}
+
+func TestCapacity(t *testing.T) {
+	// capacity
+	y := []int{1}
+	assert.Equal(t, cap(y), 1)
+
+	y = append(y, 1)
+	assert.Equal(t, cap(y), 2)
+
+	y = append(y, 1)
+	assert.Equal(t, cap(y), 4)
+
+	y = append(y, 1, 1)
+	assert.Equal(t, len(y), 5)
+	assert.Equal(t, cap(y), 8)
 }
