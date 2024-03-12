@@ -84,7 +84,7 @@ func preview(fname string) error {
 }
 
 func run(filename string, tFname string, out io.Writer, skipPreview bool) error {
-	input, err := ioutil.ReadFile(filename)
+	input, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func run(filename string, tFname string, out io.Writer, skipPreview bool) error 
 		return err
 	}
 
-	temp, err := ioutil.TempFile("", "mdp-*.html")
+	temp, err := os.CreateTemp("", "mdp-*.html")
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +12,7 @@ import (
 )
 
 func createTempDir(t *testing.T, files map[string]int) (dirname string, cleanup func()) {
-	tempDir, err := ioutil.TempDir("", "walktest")
+	tempDir, err := os.MkdirTemp("", "walktest")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +20,7 @@ func createTempDir(t *testing.T, files map[string]int) (dirname string, cleanup 
 		for j := 1; j <= fileCount; j++ {
 			fname := fmt.Sprintf("file%d%s", j, file)
 			fpath := filepath.Join(tempDir, fname)
-			if err := ioutil.WriteFile(fpath, []byte("dummy"), 0644); err != nil {
+			if err := os.WriteFile(fpath, []byte("dummy"), 0644); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -61,7 +60,7 @@ func TestRunArchive(t *testing.T) {
 			res := strings.TrimSpace(buffer.String())
 			assert.Equal(t, expOut, res)
 
-			filesArchived, err := ioutil.ReadDir(archiveDir)
+			filesArchived, err := os.ReadDir(archiveDir)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.nArchive, len(filesArchived))
 
@@ -121,7 +120,7 @@ func TestRunDelExtension(t *testing.T) {
 			res := buffer.String()
 			assert.Equal(t, testCase.expected, res)
 
-			filesLeft, err := ioutil.ReadDir(tempDir)
+			filesLeft, err := os.ReadDir(tempDir)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.nNoDelete, len(filesLeft))
 

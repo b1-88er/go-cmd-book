@@ -2,7 +2,6 @@ package todo_test
 
 import (
 	"go-cmd-book/todo"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -49,7 +48,7 @@ func TestSaveGet(t *testing.T) {
 
 	assert.Equal(t, l1[0].Task, taskName)
 
-	tf, err := ioutil.TempFile("", "")
+	tf, err := os.CreateTemp("", "")
 
 	if err != nil {
 		t.Fatalf("Error creating tmp file %s", err)

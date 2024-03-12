@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -17,14 +16,14 @@ const (
 )
 
 func TestParseContent(t *testing.T) {
-	input, err := ioutil.ReadFile(inputFile)
+	input, err := os.ReadFile(inputFile)
 	assert.Nil(t, err)
 
 	result, err := parseContent(input, "")
 
 	assert.Nil(t, err)
 
-	expected, err := ioutil.ReadFile(goldenFile)
+	expected, err := os.ReadFile(goldenFile)
 
 	assert.Nil(t, err)
 
@@ -36,10 +35,10 @@ func TestRun(t *testing.T) {
 	var mockStdout bytes.Buffer
 	assert.Nil(t, run(inputFile, "", &mockStdout, true))
 	resultFile := strings.TrimSpace(mockStdout.String())
-	result, err := ioutil.ReadFile(resultFile)
+	result, err := os.ReadFile(resultFile)
 	assert.Nil(t, err)
 
-	expected, err := ioutil.ReadFile(goldenFile)
+	expected, err := os.ReadFile(goldenFile)
 	assert.Nil(t, err)
 
 	assert.Equal(t, string(expected), string(result))
