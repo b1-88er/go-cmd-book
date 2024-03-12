@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -145,5 +144,5 @@ func parseContent(input []byte, tFname string) ([]byte, error) {
 }
 
 func saveHTML(outFname string, data []byte) error {
-	return ioutil.WriteFile(outFname, data, 0644)
+	return os.WriteFile(outFname, data, 0644)
 }
