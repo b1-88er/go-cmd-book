@@ -8,28 +8,10 @@ import (
 	"os"
 )
 
-// CountMode is an enum for the count mode
-type CountMode int
-
-const (
-	Bytes CountMode = iota
-	Lines
-	Words
-)
-
-func count(r io.Reader, mode CountMode) int {
+func count(r io.Reader, scanFunc bufio.SplitFunc) int {
 	// a scanner is used to read text from a reader such a files
 	scanner := bufio.NewScanner(r)
-	switch mode {
-	case Bytes:
-		scanner.Split(bufio.ScanBytes)
-	case Lines:
-		scanner.Split(bufio.ScanLines)
-	case Words:
-		scanner.Split(bufio.ScanWords)
-	default:
-		panic("Unknown mode")
-	}
+	scanner.Split(scanFunc)
 
 	wc := 0
 	for scanner.Scan() {
@@ -46,12 +28,12 @@ func main() {
 		os.Exit(1)
 	}
 	if *lines {
-		fmt.Println(count(os.Stdin, Lines))
+		fmt.Println(count(os.Stdin, bufio.ScanLines))
 		return
 	}
 	if *bytes {
-		fmt.Println(count(os.Stdin, Bytes))
+		fmt.Println(count(os.Stdin, bufio.ScanBytes))
 		return
 	}
-	fmt.Println(count(os.Stdin, Words))
+	fmt.Println(count(os.Stdin, bufio.ScanWords))
 }
