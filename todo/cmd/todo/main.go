@@ -112,6 +112,7 @@ func main() {
 
 	default:
 		fmt.Fprintln(os.Stderr, "No flags provided")
+		flag.Usage()
 		os.Exit(1)
 	}
 }

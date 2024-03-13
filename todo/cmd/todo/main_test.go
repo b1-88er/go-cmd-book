@@ -12,6 +12,7 @@ import (
 )
 
 const binName = "todo"
+const testingFileName = ".testing.json"
 
 // executes once per test suite
 func TestMain(m *testing.M) {
@@ -29,8 +30,14 @@ func TestMain(m *testing.M) {
 	result := m.Run()
 	fmt.Println("Cleaning up ...")
 	os.Remove(binName)
-	os.Remove(todoFileName)
+	os.Remove(testingFileName)
 	os.Exit(result) // have to exit on my own according to docs
+}
+
+func cmd(cmdPath string, args ...string) *exec.Cmd {
+	cmd := exec.Command(cmdPath, args...)
+	cmd.Env = append(os.Environ(), "TODO_FILENAME="+testingFileName)
+	return cmd
 }
 
 func TestTodoCLI(t *testing.T) {
@@ -44,12 +51,12 @@ func TestTodoCLI(t *testing.T) {
 	cmdPath := filepath.Join(dir, binName)
 
 	t.Run("AddNewTask", func(t *testing.T) {
-		cmd := exec.Command(cmdPath, "-task", task)
+		cmd := cmd(cmdPath, "-add", task)
 		assert.Nil(t, cmd.Run())
 	})
 
 	t.Run("ListTasks", func(t *testing.T) {
-		cmd := exec.Command(cmdPath, "-list")
+		cmd := cmd(cmdPath, "-list")
 		out, err := cmd.CombinedOutput()
 		expected := fmt.Sprintf(" 1: %s\n", task)
 
@@ -58,7 +65,7 @@ func TestTodoCLI(t *testing.T) {
 	})
 
 	t.Run("DeleteTask", func(t *testing.T) {
-		cmd := exec.Command(cmdPath, "-delete", "1")
+		cmd := cmd(cmdPath, "-delete", "1")
 		assert.Nil(t, cmd.Run())
 
 		out, err := exec.Command(cmdPath, "-list").CombinedOutput()
@@ -70,7 +77,7 @@ func TestTodoCLI(t *testing.T) {
 
 	t.Run("Add task from the STDIN", func(t *testing.T) {
 		const task = "task from stdin\n"
-		cmd := exec.Command(cmdPath, "-add")
+		cmd := cmd(cmdPath, "-add")
 		cmdStdIn, err := cmd.StdinPipe()
 		cmdStdIn.Close()
 		assert.Nil(t, err)
