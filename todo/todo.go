@@ -9,10 +9,10 @@ import (
 )
 
 type item struct {
-	Task        string
-	Done        bool
-	CreatedAt   time.Time
-	CompletedAt time.Time
+	Task        string    `json:"task"`
+	Done        bool      `json:"done"`
+	CreatedAt   time.Time `json:"created_at"`
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 type List []item
