@@ -77,11 +77,15 @@ func TestTodoCLI(t *testing.T) {
 
 	t.Run("Add task from the STDIN", func(t *testing.T) {
 		const task = "task from stdin\n"
-		cmd := cmd(cmdPath, "-add")
-		cmdStdIn, err := cmd.StdinPipe()
-		cmdStdIn.Close()
+		add := cmd(cmdPath, "-add")
+		cmdStdIn, err := add.StdinPipe()
 		assert.Nil(t, err)
 		io.WriteString(cmdStdIn, task)
-		assert.Nil(t, cmd.Run())
+		cmdStdIn.Close()
+		assert.Nil(t, add.Run())
+
+		list, err := cmd(cmdPath, "-list").Output()
+		assert.Nil(t, err)
+		assert.Equal(t, fmt.Sprintf(" 1: %s", task), string(list))
 	})
 }
