@@ -13,11 +13,11 @@ import (
 var todoFileName = ".todo.json"
 
 func getTask(r io.Reader, args ...string) ([]string, error) {
+	tasks := make([]string, 0)
 	if len(args) > 0 {
-		return []string{strings.Join(args, " ")}, nil
+		tasks = append(tasks, strings.Join(args, " "))
 	}
 
-	tasks := []string{}
 	s := bufio.NewScanner(r)
 	for s.Scan() {
 		if err := s.Err(); err != nil {
