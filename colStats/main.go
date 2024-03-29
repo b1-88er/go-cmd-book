@@ -28,7 +28,7 @@ func csv2float(r io.Reader, column int) ([]float64, error) {
 	column -= 1
 	allData, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("cannot open csv: %s", err)
+		return nil, fmt.Errorf("cannot open csv: %w", err)
 	}
 
 	var data []float64
@@ -75,7 +75,7 @@ func run(filenames []string, op string, column int, out io.Writer) error {
 	for _, filename := range filenames {
 		f, err := os.Open(filename)
 		if err != nil {
-			return fmt.Errorf("error opening file %s: %v", filename, err)
+			return fmt.Errorf("error opening file %s: %w", filename, err)
 		}
 
 		data, err := csv2float(f, column)
