@@ -96,7 +96,7 @@ func run(filenames []string, op string, column int, out io.Writer) error {
 
 func main() {
 	op := flag.String("op", "sum", "operation to perform")
-	column := flag.Int("column", 1, "column to process")
+	column := flag.Int("col", 1, "column to process")
 	flag.Parse()
 
 	if err := run(flag.Args(), *op, *column, os.Stdout); err != nil {
