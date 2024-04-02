@@ -25,14 +25,21 @@ type statsFunc func([]float64) float64
 
 func csv2float(r io.Reader, column int) ([]float64, error) {
 	reader := csv.NewReader(r)
+	reader.ReuseRecord = true
+
+	// what a sad interface
 	column -= 1
-	allData, err := reader.ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("cannot open csv: %w", err)
-	}
 
 	var data []float64
-	for i, row := range allData {
+	for i := 0; ; i++ {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("error reading row %d: %w", i, err)
+		}
+		// skip headers
 		if i == 0 {
 			continue
 		}
@@ -48,7 +55,6 @@ func csv2float(r io.Reader, column int) ([]float64, error) {
 
 		data = append(data, val)
 	}
-
 	return data, nil
 }
 
