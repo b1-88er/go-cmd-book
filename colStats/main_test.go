@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -74,5 +76,18 @@ func TestRun(t *testing.T) {
 			assert.ErrorIs(t, err, testCase.expErr)
 			assert.Equal(t, testCase.exp, result.String())
 		})
+	}
+}
+
+func BenchmarkRun(b *testing.B) {
+	filenames, err := filepath.Glob("testdata/benchmark/*.csv")
+	assert.Nil(b, err)
+
+	b.ResetTimer()
+	for i := range b.N {
+		_ = i
+		if err := run(filenames, "avg", 2, io.Discard); err != nil {
+			b.Error(err)
+		}
 	}
 }

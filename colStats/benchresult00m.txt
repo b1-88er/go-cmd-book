@@ -1,0 +1,6 @@
+goos: darwin
+goarch: arm64
+pkg: go-cmd-book/colStats
+BenchmarkRun-8   	      10	 305916071 ns/op	534480318 B/op	 5041048 allocs/op
+PASS
+ok  	go-cmd-book/colStats	3.512s
