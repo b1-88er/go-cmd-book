@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
+	"sync"
 )
 
 func sum(data []float64) float64 {
@@ -60,6 +62,7 @@ func csv2float(r io.Reader, column int) ([]float64, error) {
 
 func run(filenames []string, op string, column int, out io.Writer) error {
 	var opFunc statsFunc
+
 	if len(filenames) == 0 {
 		return ErrNoFiles
 	}
@@ -78,26 +81,61 @@ func run(filenames []string, op string, column int, out io.Writer) error {
 	}
 
 	results := make([]float64, 0)
-	for _, filename := range filenames {
-		f, err := os.Open(filename)
-		if err != nil {
-			return fmt.Errorf("error opening file %s: %w", filename, err)
-		}
 
-		data, err := csv2float(f, column)
-		if err != nil {
+	resCh := make(chan []float64)
+	errCh := make(chan error)
+	doneCh := make(chan struct{})
+	fileCh := make(chan string)
+
+	wg := sync.WaitGroup{}
+
+	go func() {
+		defer close(fileCh)
+		for _, filename := range filenames {
+			fileCh <- filename
+		}
+	}()
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Add(1)
+
+		go func() {
+			for filename := range fileCh {
+				f, err := os.Open(filename)
+				if err != nil {
+					errCh <- fmt.Errorf("error opening file %s: %w", filename, err)
+				}
+
+				data, err := csv2float(f, column)
+				if err != nil {
+					errCh <- err
+				}
+
+				resCh <- data
+
+				if err := f.Close(); err != nil {
+					errCh <- fmt.Errorf("error closing file %s: %v", filename, err)
+				}
+			}
+			defer wg.Done()
+		}()
+
+	}
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+	for {
+		select {
+		case data := <-resCh:
+			results = append(results, data...)
+		case err := <-errCh:
+			return err
+		case <-doneCh:
+			_, err := fmt.Fprintln(out, opFunc(results))
 			return err
 		}
-
-		if err := f.Close(); err != nil {
-			return fmt.Errorf("error closing file %s: %v", filename, err)
-		}
-
-		results = append(results, data...)
 	}
-
-	_, err := fmt.Fprintln(out, opFunc(results))
-	return err
 }
 
 func main() {
