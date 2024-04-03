@@ -23,6 +23,26 @@ func avg(data []float64) float64 {
 	return sum(data) / float64(len(data))
 }
 
+func min(data []float64) float64 {
+	min := data[0]
+	for _, v := range data {
+		if v < min {
+			min = v
+		}
+	}
+	return min
+}
+
+func max(data []float64) float64 {
+	max := data[0]
+	for _, v := range data {
+		if v > max {
+			max = v
+		}
+	}
+	return max
+}
+
 type statsFunc func([]float64) float64
 
 func csv2float(r io.Reader, column int) ([]float64, error) {
@@ -76,6 +96,10 @@ func run(filenames []string, op string, column int, out io.Writer) error {
 		opFunc = sum
 	case "avg":
 		opFunc = avg
+	case "min":
+		opFunc = min
+	case "max":
+		opFunc = max
 	default:
 		return ErrInvalidOperation
 	}
