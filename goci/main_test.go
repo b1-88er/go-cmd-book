@@ -17,14 +17,14 @@ func TestRun(t *testing.T) {
 		{
 			name:   "success",
 			proj:   "testdata/tool",
-			out:    "Build successful",
+			out:    "Go build: SUCCESS\nGo test: SUCCESS\n",
 			expErr: nil,
 		},
 		{
 			name:   "validation error",
 			proj:   "testdata/toolErr",
 			out:    "",
-			expErr: &stepErr{step: build},
+			expErr: &stepErr{step: "go build"},
 		},
 	}
 
@@ -37,7 +37,7 @@ func TestRun(t *testing.T) {
 			// both assertions do the same thing
 			assert.ErrorIs(t, testCase.expErr, err)
 			if expErr, ok := (err).(*stepErr); ok {
-				assert.Equal(t, expErr.step, build)
+				assert.Equal(t, expErr.step, "go build")
 			}
 
 		})

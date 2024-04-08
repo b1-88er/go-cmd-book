@@ -9,23 +9,23 @@ var (
 	ErrValidation = errors.New("validation error")
 )
 
-type step int
+// type step int
 
-const (
-	build step = iota
-)
+// const (
+// 	build step = iota
+// )
 
-func (s step) String() string {
-	switch s {
-	case build:
-		return "go build"
-	default:
-		return "unknown"
-	}
-}
+// func (s step) String() string {
+// 	switch s {
+// 	case build:
+// 		return "go build"
+// 	default:
+// 		return "unknown"
+// 	}
+// }
 
 type stepErr struct {
-	step  step
+	step  string
 	msg   string
 	cause error
 }
@@ -35,11 +35,10 @@ func (e *stepErr) Error() string {
 }
 
 func (e *stepErr) Is(target error) bool {
-	t, ok := target.(*stepErr)
-	if !ok {
-		return false
+	if t, ok := target.(*stepErr); ok {
+		return t.step == e.step
 	}
-	return t.step == e.step
+	return false
 }
 
 func (e *stepErr) Unwrap() error {
