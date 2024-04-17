@@ -7,6 +7,10 @@ import (
 	"os"
 )
 
+type executer interface {
+	execute() (string, error)
+}
+
 func main() {
 	proj := flag.String("project", "", "project name")
 	flag.Parse()
@@ -22,7 +26,7 @@ func run(proj string, out io.Writer) error {
 		return fmt.Errorf("project name is required: %w", ErrValidation)
 	}
 
-	pipeline := make([]step, 0)
+	pipeline := make([]executer, 0)
 
 	pipeline = append(pipeline, newStep(
 		"go build",
@@ -38,6 +42,14 @@ func run(proj string, out io.Writer) error {
 		"Go test: SUCCESS\n",
 		proj,
 		[]string{"test", "./...", "-v"},
+	))
+
+	pipeline = append(pipeline, newExecutionStep(
+		"go fmt",
+		"gofmt",
+		"Go fmt: SUCCESS",
+		proj,
+		[]string{"-l", "."},
 	))
 
 	for _, s := range pipeline {

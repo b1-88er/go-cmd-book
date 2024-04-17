@@ -12,12 +12,14 @@ func TestRun(t *testing.T) {
 		name   string
 		proj   string
 		out    string
-		expErr error
+		stderr string
+		expErr *stepErr
 	}{
 		{
 			name:   "success",
 			proj:   "testdata/tool",
-			out:    "Go build: SUCCESS\nGo test: SUCCESS\n",
+			out:    "Go build: SUCCESS\nGo test: SUCCESS\nGo fmt: SUCCESS",
+			stderr: "",
 			expErr: nil,
 		},
 		{
@@ -25,6 +27,12 @@ func TestRun(t *testing.T) {
 			proj:   "testdata/toolErr",
 			out:    "",
 			expErr: &stepErr{step: "go build"},
+		},
+		{
+			name:   "format error",
+			proj:   "testdata/toolFmtErr",
+			out:    "Go build: SUCCESS\nGo test: SUCCESS\n",
+			expErr: &stepErr{step: "go fmt"},
 		},
 	}
 
@@ -35,9 +43,12 @@ func TestRun(t *testing.T) {
 			assert.Equal(t, testCase.out, out.String())
 
 			// both assertions do the same thing
-			assert.ErrorIs(t, testCase.expErr, err)
+			if err != nil {
+				assert.ErrorIs(t, testCase.expErr, err)
+
+			}
 			if expErr, ok := (err).(*stepErr); ok {
-				assert.Equal(t, expErr.step, "go build")
+				assert.Equal(t, expErr.step, testCase.expErr.step)
 			}
 
 		})
