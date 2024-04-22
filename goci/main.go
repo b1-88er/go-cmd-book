@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 )
 
 type executer interface {
@@ -47,9 +48,18 @@ func run(proj string, out io.Writer) error {
 	pipeline = append(pipeline, newExecutionStep(
 		"go fmt",
 		"gofmt",
-		"Go fmt: SUCCESS",
+		"Go fmt: SUCCESS\n",
 		proj,
 		[]string{"-l", "."},
+	))
+
+	pipeline = append(pipeline, newTimeoutStep(
+		"git push",
+		"git",
+		"Git push: SUCCESS\n",
+		proj,
+		[]string{"push", "origin", "master"},
+		10*time.Second,
 	))
 
 	for _, s := range pipeline {
