@@ -59,7 +59,7 @@ func run(proj string, out io.Writer) error {
 		"Git push: SUCCESS\n",
 		proj,
 		[]string{"push", "origin", "master"},
-		10*time.Second,
+		1*time.Second,
 	))
 
 	for _, s := range pipeline {

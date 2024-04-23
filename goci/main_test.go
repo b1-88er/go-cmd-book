@@ -2,14 +2,50 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func mockCmdContext(ctx context.Context, exe string, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess"}
+
+	cs = append(cs, exe)
+	cs = append(cs, args...)
+
+	cmd := exec.CommandContext(ctx, os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	return cmd
+}
+
+func mockCmdTimeout(ctx context.Context, exe string, args ...string) *exec.Cmd {
+	cmd := mockCmdContext(ctx, exe, args...)
+	cmd.Env = append(cmd.Env, "GO_HELPER_TIMEOUT=1")
+	return cmd
+}
+
+func TestHelperProcess(t *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+
+	if os.Getenv("GO_HELPER_TIMEOUT") == "1" {
+		time.Sleep(2 * time.Second)
+	}
+
+	if os.Args[2] == "git" {
+		fmt.Fprintln(os.Stdout, "everything up-to-date")
+		os.Exit(0)
+	}
+
+	os.Exit(1)
+}
 
 func setupGit(t *testing.T, projPath string) (string, func()) {
 	t.Helper()
@@ -49,7 +85,6 @@ func setupGit(t *testing.T, projPath string) (string, func()) {
 	}
 
 	for _, g := range gitCmdList {
-		t.Logf("running git %v", g.args)
 		gitCmd := exec.Command(gitExec, g.args...)
 		gitCmd.Dir = g.dir
 
@@ -72,8 +107,9 @@ func TestRun(t *testing.T) {
 		proj      string
 		out       string
 		stderr    string
-		expErr    *stepErr
+		expErr    error
 		setpupGit bool
+		mockCmd   func(ctx context.Context, name string, args ...string) *exec.Cmd
 	}{
 		{
 			name:      "success",
@@ -82,6 +118,16 @@ func TestRun(t *testing.T) {
 			stderr:    "",
 			expErr:    nil,
 			setpupGit: true,
+			mockCmd:   nil,
+		},
+		{
+			name:      "MockSuccess",
+			proj:      "testdata/tool",
+			out:       "Go build: SUCCESS\nGo test: SUCCESS\nGo fmt: SUCCESS\nGit push: SUCCESS\n",
+			stderr:    "",
+			expErr:    nil,
+			setpupGit: true,
+			mockCmd:   mockCmdContext,
 		},
 		{
 			name:      "validation error",
@@ -89,6 +135,7 @@ func TestRun(t *testing.T) {
 			out:       "",
 			expErr:    &stepErr{step: "go build"},
 			setpupGit: false,
+			mockCmd:   nil,
 		},
 		{
 			name:      "format error",
@@ -96,29 +143,40 @@ func TestRun(t *testing.T) {
 			out:       "Go build: SUCCESS\nGo test: SUCCESS\n",
 			expErr:    &stepErr{step: "go fmt"},
 			setpupGit: false,
+			mockCmd:   nil,
+		},
+		{
+			name:      "failTimeout",
+			proj:      "./testdata/tool",
+			out:       "Go build: SUCCESS\nGo test: SUCCESS\nGo fmt: SUCCESS\n",
+			expErr:    context.DeadlineExceeded,
+			setpupGit: false,
+			mockCmd:   mockCmdTimeout,
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			if testCase.setpupGit {
+				if _, err := exec.LookPath("git"); err != nil {
+					t.Skip("Git not installed, skipping")
+				}
 				copiedProject, cleanup := setupGit(t, testCase.proj)
 				testCase.proj = copiedProject
 				defer cleanup()
 			}
+
+			if testCase.mockCmd != nil {
+				command = testCase.mockCmd
+			}
 			out := bytes.Buffer{}
 			err := run(testCase.proj, &out)
-			assert.Equal(t, testCase.out, out.String())
 
-			// both assertions do the same thing
 			if err != nil {
-				assert.ErrorIs(t, testCase.expErr, err)
+				assert.ErrorIs(t, err, testCase.expErr)
 
 			}
-			if expErr, ok := (err).(*stepErr); ok {
-				assert.Equal(t, expErr.step, testCase.expErr.step)
-			}
-
+			assert.Equal(t, testCase.out, out.String())
 		})
 	}
 }
