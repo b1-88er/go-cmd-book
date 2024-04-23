@@ -41,8 +41,8 @@ func setupGit(t *testing.T, projPath string) (string, func()) {
 		{[]string{"remote", "add", "origin", remoteUri}, proj, nil},
 		{[]string{"add", "."}, proj, nil},
 		{[]string{"commit", "-m", "test"}, proj, []string{
-			"GIT_COMMITER_NAME=test",
-			"GIT_COMMITER_EMAIL=test@example.com",
+			"GIT_COMMITTER_NAME=test",
+			"GIT_COMMITTER_EMAIL=test@example.com",
 			"GIT_AUTHOR_NAME=test",
 			"GIT_AUTHOR_EMAIL=test@example.com"},
 		},
