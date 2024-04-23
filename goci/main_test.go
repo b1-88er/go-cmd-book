@@ -49,6 +49,7 @@ func setupGit(t *testing.T, projPath string) (string, func()) {
 	}
 
 	for _, g := range gitCmdList {
+		t.Logf("running git %v", g.args)
 		gitCmd := exec.Command(gitExec, g.args...)
 		gitCmd.Dir = g.dir
 
