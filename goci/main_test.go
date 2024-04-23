@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
@@ -179,4 +181,35 @@ func TestRun(t *testing.T) {
 			assert.Equal(t, testCase.out, out.String())
 		})
 	}
+}
+
+func TestSignal(t *testing.T) {
+	testCases := []struct {
+		name   string
+		proj   string
+		sig    syscall.Signal
+		expErr error
+	}{
+		{"SIGINT", "./testdata/tool", syscall.SIGINT, ErrSignal},
+		{"SIGTERM", "./testdata/tool", syscall.SIGTERM, ErrSignal},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			command = mockCmdTimeout
+
+			errCh := make(chan error)
+
+			go func() {
+				errCh <- run(testCase.proj, io.Discard)
+			}()
+
+			go func() {
+				// Kill actually sends a signal, odd
+				syscall.Kill(os.Getpid(), testCase.sig)
+			}()
+			assert.ErrorIs(t, <-errCh, testCase.expErr)
+		})
+	}
+
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -59,17 +61,41 @@ func run(proj string, out io.Writer) error {
 		"Git push: SUCCESS\n",
 		proj,
 		[]string{"push", "origin", "master"},
-		1*time.Second,
+		2*time.Second,
 	))
 
-	for _, s := range pipeline {
-		msg, err := s.execute()
-		if err != nil {
-			return err
+	sig := make(chan os.Signal, 1)
+
+	errCh := make(chan error)
+	// struct is a 0 byte type?
+	done := make(chan struct{})
+
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		for _, s := range pipeline {
+			msg, err := s.execute()
+			if err != nil {
+				errCh <- err
+				return
+			}
+			if _, err := fmt.Fprint(out, msg); err != nil {
+				errCh <- err
+				return
+			}
 		}
-		if _, err := fmt.Fprint(out, msg); err != nil {
+		close(done)
+	}()
+
+	for {
+		select {
+		case err := <-errCh:
 			return err
+		case rec := <-sig:
+			signal.Stop(sig)
+			return fmt.Errorf("%s Exiting: %w", rec, ErrSignal)
+		case <-done:
+			return nil
 		}
 	}
-	return nil
 }

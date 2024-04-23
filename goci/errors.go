@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrValidation = errors.New("validation error")
+	ErrSignal     = errors.New("signal")
 )
 
 // type step int
