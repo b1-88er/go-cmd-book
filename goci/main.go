@@ -61,7 +61,7 @@ func run(proj string, out io.Writer) error {
 		"Git push: SUCCESS\n",
 		proj,
 		[]string{"push", "origin", "master"},
-		2*time.Second,
+		5*time.Second,
 	))
 
 	sig := make(chan os.Signal, 1)

@@ -38,7 +38,7 @@ func TestHelperProcess(t *testing.T) {
 	}
 
 	if os.Getenv("GO_HELPER_TIMEOUT") == "1" {
-		time.Sleep(2 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 
 	if os.Args[2] == "git" {
@@ -180,6 +180,9 @@ func TestRun(t *testing.T) {
 			}
 			assert.Equal(t, testCase.out, out.String())
 		})
+		t.Cleanup(func() {
+			command = exec.CommandContext
+		})
 	}
 }
 
@@ -209,6 +212,9 @@ func TestSignal(t *testing.T) {
 				syscall.Kill(os.Getpid(), testCase.sig)
 			}()
 			assert.ErrorIs(t, <-errCh, testCase.expErr)
+		})
+		t.Cleanup(func() {
+			command = exec.CommandContext
 		})
 	}
 
