@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -18,13 +19,13 @@ func main() {
 	proj := flag.String("project", "", "project name")
 	flag.Parse()
 
-	if err := run(*proj, os.Stdout); err != nil {
+	if err := run(*proj, os.Stdout, exec.CommandContext); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run(proj string, out io.Writer) error {
+func run(proj string, out io.Writer, command Command) error {
 	if proj == "" {
 		return fmt.Errorf("project name is required: %w", ErrValidation)
 	}
@@ -62,6 +63,7 @@ func run(proj string, out io.Writer) error {
 		proj,
 		[]string{"push", "origin", "master"},
 		5*time.Second,
+		command,
 	))
 
 	sig := make(chan os.Signal, 1)

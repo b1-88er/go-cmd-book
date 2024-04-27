@@ -120,7 +120,7 @@ func TestRun(t *testing.T) {
 			stderr:    "",
 			expErr:    nil,
 			setpupGit: true,
-			mockCmd:   nil,
+			mockCmd:   exec.CommandContext,
 		},
 		{
 			name:      "MockSuccess",
@@ -137,7 +137,7 @@ func TestRun(t *testing.T) {
 			out:       "",
 			expErr:    &stepErr{step: "go build"},
 			setpupGit: false,
-			mockCmd:   nil,
+			mockCmd:   exec.CommandContext,
 		},
 		{
 			name:      "format error",
@@ -145,7 +145,7 @@ func TestRun(t *testing.T) {
 			out:       "Go build: SUCCESS\nGo test: SUCCESS\n",
 			expErr:    &stepErr{step: "go fmt"},
 			setpupGit: false,
-			mockCmd:   nil,
+			mockCmd:   exec.CommandContext,
 		},
 		{
 			name:      "failTimeout",
@@ -168,20 +168,14 @@ func TestRun(t *testing.T) {
 				defer cleanup()
 			}
 
-			if testCase.mockCmd != nil {
-				command = testCase.mockCmd
-			}
 			out := bytes.Buffer{}
-			err := run(testCase.proj, &out)
+			err := run(testCase.proj, &out, testCase.mockCmd)
 
 			if err != nil {
 				assert.ErrorIs(t, err, testCase.expErr)
 
 			}
 			assert.Equal(t, testCase.out, out.String())
-		})
-		t.Cleanup(func() {
-			command = exec.CommandContext
 		})
 	}
 }
@@ -199,12 +193,10 @@ func TestSignal(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			command = mockCmdTimeout
-
 			errCh := make(chan error)
 
 			go func() {
-				errCh <- run(testCase.proj, io.Discard)
+				errCh <- run(testCase.proj, io.Discard, mockCmdContext)
 			}()
 
 			go func() {
@@ -212,9 +204,6 @@ func TestSignal(t *testing.T) {
 				syscall.Kill(os.Getpid(), testCase.sig)
 			}()
 			assert.ErrorIs(t, <-errCh, testCase.expErr)
-		})
-		t.Cleanup(func() {
-			command = exec.CommandContext
 		})
 	}
 
