@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 )
 
 var (
@@ -18,11 +18,9 @@ type HostList struct {
 }
 
 func (hl *HostList) search(host string) (bool, int) {
-	sort.Strings(hl.Hosts)
-
-	i := sort.SearchStrings(hl.Hosts, host)
-	if i < len(hl.Hosts) && hl.Hosts[i] == host {
-		return true, i
+	idx := slices.Index(hl.Hosts, host)
+	if idx >= 0 {
+		return true, idx
 	}
 	return false, -1
 }
@@ -37,7 +35,7 @@ func (hl *HostList) Add(host string) error {
 
 func (hl *HostList) Remove(host string) error {
 	if present, i := hl.search(host); present {
-		hl.Hosts = append(hl.Hosts[:i], hl.Hosts[i+1:]...)
+		hl.Hosts = slices.Delete(hl.Hosts, i, i+1)
 		return nil
 	}
 	return fmt.Errorf("%s: %w", host, ErrNotExists)

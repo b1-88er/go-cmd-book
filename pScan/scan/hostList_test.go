@@ -32,6 +32,16 @@ func TestHostList(t *testing.T) {
 		assert.Len(t, hl.Hosts, 0)
 	})
 
+	t.Run("silly slice", func(t *testing.T) {
+		// I am doing this for 20 years and still confuse indexes with len
+		s := []string{"a", "b"}
+		assert.Equal(t, []string{"a"}, s[0:1])
+		assert.Equal(t, []string{s[0]}, s[0:1])
+		assert.Equal(t, []string{"b"}, s[1:2])
+		assert.Equal(t, []string{s[1]}, s[1:2])
+		assert.Equal(t, len(s), 2)
+	})
+
 	t.Run("removeNotExisting", func(t *testing.T) {
 		hl := &scan.HostList{}
 		hl.Add("host1")
