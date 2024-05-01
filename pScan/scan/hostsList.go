@@ -17,16 +17,8 @@ type HostList struct {
 	Hosts []string
 }
 
-func (hl *HostList) search(host string) (bool, int) {
-	idx := slices.Index(hl.Hosts, host)
-	if idx >= 0 {
-		return true, idx
-	}
-	return false, -1
-}
-
 func (hl *HostList) Add(host string) error {
-	if present, _ := hl.search(host); present {
+	if idx := slices.Index(hl.Hosts, host); idx > -1 {
 		return fmt.Errorf("%s: %w", host, ErrExists)
 	}
 	hl.Hosts = append(hl.Hosts, host)
@@ -34,8 +26,8 @@ func (hl *HostList) Add(host string) error {
 }
 
 func (hl *HostList) Remove(host string) error {
-	if present, i := hl.search(host); present {
-		hl.Hosts = slices.Delete(hl.Hosts, i, i+1)
+	if idx := slices.Index(hl.Hosts, host); idx > -1 {
+		hl.Hosts = slices.Delete(hl.Hosts, idx, idx+1)
 		return nil
 	}
 	return fmt.Errorf("%s: %w", host, ErrNotExists)
