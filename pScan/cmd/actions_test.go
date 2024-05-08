@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"go-cmd-book/pScan/scan"
+	"net"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,4 +52,29 @@ func TestHostActions(t *testing.T) {
 	db, err := os.ReadFile(hostFile.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, "host2\nhost3\n", string(db))
+}
+
+func TestScanAction(t *testing.T) {
+	hostFile, err := os.CreateTemp("", "")
+	assert.NoError(t, err)
+	hl := scan.HostList{}
+	assert.NoError(t, hl.Add("localhost"))
+	assert.NoError(t, hl.Save(hostFile.Name()))
+	out := &bytes.Buffer{}
+
+	listener, err := net.Listen("tcp", net.JoinHostPort("localhost", "0"))
+	assert.NoError(t, err)
+	defer listener.Close()
+
+	_, portStr, err := net.SplitHostPort(listener.Addr().String())
+	assert.NoError(t, err)
+	port, err := strconv.ParseInt(portStr, 10, 0)
+	assert.NoError(t, err)
+
+	err = scanAction(out, hostFile.Name(), []int{int(port)})
+	assert.NoError(t, err)
+
+	expected := fmt.Sprintf("localhost: \n\t%d: open\n\n", port)
+	assert.Equal(t, expected, out.String())
+
 }
