@@ -1,30 +1,48 @@
 /*
 Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"go-cmd-book/pScan/scan"
+	"io"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:          "delete <host1> ... <hostn>",
+	Aliases:      []string{"d"},
+	Short:        "Delete host(s) from the host file",
+	SilenceUsage: true,
+	Args:         cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		hostsFile, err := cmd.Flags().GetString("hosts-file")
+		if err != nil {
+			return err
+		}
+		return deleteAction(os.Stdout, hostsFile, args)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
 	},
 }
 
+func deleteAction(out io.Writer, hostsFile string, args []string) error {
+	hl := &scan.HostList{}
+	if err := hl.Load(hostsFile); err != nil {
+		return err
+	}
+
+	for _, host := range args {
+		if err := hl.Remove(host); err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "Host deleted:", host)
+	}
+	return hl.Save(hostsFile)
+}
 func init() {
 	hostsCmd.AddCommand(deleteCmd)
 
