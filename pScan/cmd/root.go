@@ -4,10 +4,15 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -34,14 +39,39 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	cobra.OnInitialize(initConfig)
 
-	var cfgFile string
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pScan.yaml)")
 	rootCmd.PersistentFlags().StringP("hosts-file", "f", "pScan.hosts", "pScan hosts file")
 
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("PSCAN")
+
+	viper.BindPFlag("hosts-file", rootCmd.PersistentFlags().Lookup("hosts-file"))
+
 	versionTemplate := `{{printf "%s: %s - version %s\n" .Name .Short .Version}}`
 	rootCmd.SetVersionTemplate(versionTemplate)
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, fmt.Errorf("homedir missing: %w", err))
+			os.Exit(1)
+		}
+
+		viper.AddConfigPath(homedir)
+		viper.SetConfigName(".pScan")
+	}
+
+	viper.AutomaticEnv()
+
+	// if err := viper.ReadInConfig(); err == nil {
+	// 	fmt.Fprintln(os.Stderr, "using config file: ", viper.ConfigFileUsed())
+	// }
+	fmt.Println(viper.ReadInConfig())
 }
