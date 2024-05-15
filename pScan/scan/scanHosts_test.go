@@ -42,6 +42,7 @@ func TestRun(t *testing.T) {
 			},
 		}, results)
 	})
+
 	t.Run("port closed", func(t *testing.T) {
 		ln.Close()
 		results := scan.Run(hl, []int{port})

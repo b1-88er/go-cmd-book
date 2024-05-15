@@ -8,6 +8,8 @@ import (
 	"go-cmd-book/pScan/scan"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -24,9 +26,39 @@ var scanCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		portRange, err := cmd.Flags().GetString("port-range")
+		if err != nil {
+			return err
+		}
+		startPort, endPort, err := parsePortRange(portRange)
+		if err != nil {
+			return err
+		}
+		for i := startPort; i <= endPort; i++ {
+			ports = append(ports, i)
+		}
 
 		return scanAction(os.Stdout, hostsFile, ports)
 	},
+}
+
+func parsePortRange(portRange string) (int, int, error) {
+	if portRange == "" {
+		return 0, 0, nil
+	}
+	parts := strings.Split(portRange, "-")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid port range: %s", portRange)
+	}
+	lowerBound, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid port range: %s", portRange)
+	}
+	upperBound, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid port range: %s", portRange)
+	}
+	return lowerBound, upperBound, nil
 }
 
 func scanAction(out io.Writer, hostsFile string, ports []int) error {
@@ -63,14 +95,5 @@ func printResults(out io.Writer, results []scan.Results) error {
 func init() {
 	rootCmd.AddCommand(scanCmd)
 	scanCmd.Flags().IntSliceP("ports", "p", []int{22, 80, 443}, "ports to scan")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// scanCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// scanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	scanCmd.Flags().StringP("port-range", "r", "", "port range, ex (1-1024)")
 }
