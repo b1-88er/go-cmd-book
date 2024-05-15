@@ -34,11 +34,21 @@ var scanCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
 		for i := startPort; i <= endPort; i++ {
 			ports = append(ports, i)
 		}
 
-		return scanAction(os.Stdout, hostsFile, ports)
+		proto, err := cmd.Flags().GetString("protocol")
+		if err != nil {
+			return err
+		}
+
+		if proto != "tcp" && proto != "udp" {
+			return fmt.Errorf("invalid protocol, should be tcp/udp %s", proto)
+		}
+
+		return scanAction(os.Stdout, hostsFile, ports, proto)
 	},
 }
 
@@ -61,13 +71,13 @@ func parsePortRange(portRange string) (int, int, error) {
 	return lowerBound, upperBound, nil
 }
 
-func scanAction(out io.Writer, hostsFile string, ports []int) error {
+func scanAction(out io.Writer, hostsFile string, ports []int, proto string) error {
 	hl := &scan.HostList{}
 	if err := hl.Load(hostsFile); err != nil {
 		return err
 	}
 
-	return printResults(out, scan.Run(hl, ports))
+	return printResults(out, scan.Run(hl, ports, proto))
 }
 
 func printResults(out io.Writer, results []scan.Results) error {
@@ -96,4 +106,6 @@ func init() {
 	rootCmd.AddCommand(scanCmd)
 	scanCmd.Flags().IntSliceP("ports", "p", []int{22, 80, 443}, "ports to scan")
 	scanCmd.Flags().StringP("port-range", "r", "", "port range, ex (1-1024)")
+	scanCmd.Flags().String("protocol", "tcp", "tcp or udp proctol")
+
 }

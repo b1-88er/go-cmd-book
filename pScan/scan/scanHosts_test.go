@@ -33,7 +33,7 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("port open", func(t *testing.T) {
-		results := scan.Run(hl, []int{port})
+		results := scan.Run(hl, []int{port}, "tcp")
 		assert.Equal(t, []scan.Results{
 			{
 				Host:       host,
@@ -45,7 +45,7 @@ func TestRun(t *testing.T) {
 
 	t.Run("port closed", func(t *testing.T) {
 		ln.Close()
-		results := scan.Run(hl, []int{port})
+		results := scan.Run(hl, []int{port}, "tcp")
 		assert.Equal(t, []scan.Results{
 			{
 				Host:       host,
@@ -59,7 +59,7 @@ func TestRun(t *testing.T) {
 		// invalid ip
 		notFound := "257.257.257.257"
 		assert.NoError(t, hl.Add(notFound))
-		results := scan.Run(hl, []int{port})
+		results := scan.Run(hl, []int{port}, "tcp")
 		assert.Equal(t, []scan.Results{
 			{
 				Host:       host,

@@ -71,7 +71,7 @@ func TestScanAction(t *testing.T) {
 	port, err := strconv.ParseInt(portStr, 10, 0)
 	assert.NoError(t, err)
 
-	err = scanAction(out, hostFile.Name(), []int{int(port)})
+	err = scanAction(out, hostFile.Name(), []int{int(port)}, "tcp")
 	assert.NoError(t, err)
 
 	expected := fmt.Sprintf("localhost: \n\t%d: open\n\n", port)

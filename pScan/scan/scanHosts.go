@@ -20,12 +20,12 @@ type PortState struct {
 	Open state
 }
 
-func scanPort(host string, port int) PortState {
+func scanPort(host string, port int, proto string) PortState {
 	p := PortState{
 		Port: port,
 	}
 	addr := net.JoinHostPort(host, fmt.Sprintf("%d", p.Port))
-	scanConn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	scanConn, err := net.DialTimeout(proto, addr, 1*time.Second)
 	if err != nil {
 		p.Open = false
 		return p
@@ -41,7 +41,7 @@ type Results struct {
 	PortStates []PortState
 }
 
-func Run(hl *HostList, ports []int) []Results {
+func Run(hl *HostList, ports []int, proto string) []Results {
 	results := make([]Results, 0, len(hl.Hosts))
 	// results := []Results{}
 	for _, host := range hl.Hosts {
@@ -55,7 +55,7 @@ func Run(hl *HostList, ports []int) []Results {
 		}
 
 		for _, port := range ports {
-			r.PortStates = append(r.PortStates, scanPort(host, port))
+			r.PortStates = append(r.PortStates, scanPort(host, port, proto))
 		}
 		results = append(results, r)
 
