@@ -48,7 +48,12 @@ var scanCmd = &cobra.Command{
 			return fmt.Errorf("invalid protocol, should be tcp/udp %s", proto)
 		}
 
-		return scanAction(os.Stdout, hostsFile, ports, proto)
+		filterClosed, err := cmd.Flags().GetBool("filter-closed")
+		if err != nil {
+			return err
+		}
+
+		return scanAction(os.Stdout, hostsFile, ports, proto, filterClosed)
 	},
 }
 
@@ -71,16 +76,16 @@ func parsePortRange(portRange string) (int, int, error) {
 	return lowerBound, upperBound, nil
 }
 
-func scanAction(out io.Writer, hostsFile string, ports []int, proto string) error {
+func scanAction(out io.Writer, hostsFile string, ports []int, proto string, filterClosed bool) error {
 	hl := &scan.HostList{}
 	if err := hl.Load(hostsFile); err != nil {
 		return err
 	}
 
-	return printResults(out, scan.Run(hl, ports, proto))
+	return printResults(out, scan.Run(hl, ports, proto), filterClosed)
 }
 
-func printResults(out io.Writer, results []scan.Results) error {
+func printResults(out io.Writer, results []scan.Results, filterClosed bool) error {
 	for _, r := range results {
 		message := ""
 		message += fmt.Sprintf("%s: ", r.Host)
@@ -90,6 +95,9 @@ func printResults(out io.Writer, results []scan.Results) error {
 		}
 		message += "\n"
 		for _, p := range r.PortStates {
+			if filterClosed && !bool(p.Open) {
+				continue
+			}
 			message += fmt.Sprintf("\t%d: %s\n", p.Port, p.Open)
 		}
 
@@ -107,5 +115,6 @@ func init() {
 	scanCmd.Flags().IntSliceP("ports", "p", []int{22, 80, 443}, "ports to scan")
 	scanCmd.Flags().StringP("port-range", "r", "", "port range, ex (1-1024)")
 	scanCmd.Flags().String("protocol", "tcp", "tcp or udp proctol")
+	scanCmd.Flags().BoolP("filter-closed", "c", false, "dont display closed ports")
 
 }
