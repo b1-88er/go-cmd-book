@@ -48,8 +48,6 @@ var (
 		Date         int64     `json:"date"`
 		TotalResults int       `json:"total_results"`
 	}
-	body []byte
-	err  error
 )
 
 func TestMain(m *testing.M) {
