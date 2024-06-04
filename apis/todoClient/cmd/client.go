@@ -18,10 +18,10 @@ var (
 )
 
 type item struct {
-	Task        string
-	Done        bool
-	CreatedAt   time.Time
-	CompletedAt time.Time
+	Task        string    `json:"task"`
+	Done        bool      `json:"done"`
+	CreatedAt   time.Time `json:"created_at"`
+	CompletedAt time.Time `json:"completed_at"`
 }
 
 type response struct {
@@ -45,7 +45,7 @@ func getItems(url string) ([]item, error) {
 	if r.StatusCode != http.StatusOK {
 		msg, err := io.ReadAll(r.Body)
 		if err != nil {
-			return nil, fmt.Errorf("Connot read the body: %w", err)
+			return nil, fmt.Errorf("connot read the body: %w", err)
 		}
 
 		err = ErrInvalidResponse
@@ -70,4 +70,16 @@ func getItems(url string) ([]item, error) {
 func getAll(apiRoot string) ([]item, error) {
 	u := fmt.Sprintf("%s/todo", apiRoot)
 	return getItems(u)
+}
+
+func getOne(apiRoot string, id int) (item, error) {
+	u := fmt.Sprintf("%s/todo/%d", apiRoot, id)
+	items, err := getItems(u)
+	if err != nil {
+		return item{}, err
+	}
+	if len(items) != 1 {
+		return item{}, fmt.Errorf("%w: Invalid result", ErrInvalidData)
+	}
+	return items[0], nil
 }
