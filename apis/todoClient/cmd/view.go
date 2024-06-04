@@ -17,7 +17,7 @@ const timeFormat = "02/01 @15:04"
 
 // viewCmd represents the view command
 var viewCmd = &cobra.Command{
-	Use:   "view <id>",
+	Use:   "view -i <id>",
 	Short: "Show a single item in detail",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		apiRoot := viper.GetString("api-root")
@@ -54,4 +54,5 @@ func printOne(out io.Writer, i item) error {
 func init() {
 	rootCmd.AddCommand(viewCmd)
 	viewCmd.Flags().IntP("id", "i", 0, "Item ID")
+	viewCmd.MarkFlagRequired("id")
 }
