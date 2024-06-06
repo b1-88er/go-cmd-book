@@ -80,6 +80,16 @@ func addItem(apiRoot, task string) error {
 	return sendRequest(u, http.MethodPost, "application/json", http.StatusCreated, &body)
 }
 
+func completeItem(apiRoot string, id int) error {
+	u := fmt.Sprintf("%s/todo/%d?complete", apiRoot, id)
+	return sendRequest(u, http.MethodPatch, "", http.StatusNoContent, nil)
+}
+
+func deleteItem(apiRoot string, id int) error {
+	u := fmt.Sprintf("%s/todo/%d", apiRoot, id)
+	return sendRequest(u, http.MethodDelete, "", http.StatusNoContent, nil)
+}
+
 func getItems(url string) ([]item, error) {
 	r, err := newClient().Get(url)
 	if err != nil {
