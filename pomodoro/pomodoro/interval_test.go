@@ -36,4 +36,8 @@ func TestGetInterval(t *testing.T) {
 	const duration = 1 * time.Millisecond
 	config := pomodoro.NewConfig(repo, 3*duration, duration, 2*duration)
 
+	i, err := pomodoro.GetInterval(config)
+	assert.NoError(t, err)
+	assert.Equal(t, pomodoro.CategoryPomodoro, i.Category)
+
 }
