@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,8 @@ func TestCountLines(t *testing.T) {
 }
 
 func TestCountByes(t *testing.T) {
-	b := bytes.NewBufferString("12345")
+	// b := bytes.NewBufferString("12345")
+	b := strings.NewReader("12345")
+	// b := bytes.NewReader([]byte("12345"))
 	assert.Equal(t, count(b, bufio.ScanBytes), 5)
 }
