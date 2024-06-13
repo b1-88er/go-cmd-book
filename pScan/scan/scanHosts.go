@@ -42,9 +42,9 @@ type Results struct {
 }
 
 func Run(hl *HostList, ports []int, proto string) []Results {
-	results := make([]Results, 0, len(hl.Hosts))
+	results := make([]Results, 0, len(*hl))
 	// results := []Results{}
-	for _, host := range hl.Hosts {
+	for _, host := range *hl {
 		r := Results{
 			Host: host,
 		}

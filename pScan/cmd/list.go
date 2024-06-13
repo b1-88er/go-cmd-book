@@ -29,7 +29,7 @@ func listAction(out io.Writer, hostsFile string) error {
 	if err := hl.Load(hostsFile); err != nil {
 		return err
 	}
-	for _, h := range hl.Hosts {
+	for _, h := range *hl {
 		if _, err := fmt.Fprintln(out, h); err != nil {
 			return err
 		}

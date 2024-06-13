@@ -184,6 +184,15 @@ It is not very well explained how templating works in Go.
 
 ## pScan
 
+Simple port scanner.
+
+### Cobra
+
+persistent flags
+cmd tree
+
+### viper
+
 ## colStats
 
 ## goci
