@@ -95,7 +95,92 @@ Walks the file tree rooted at root, calling fn for each file or directory in the
 
 ## todo list
 
-## mbp
+Store todo tasks as JSON file on the fs. Manage the records via cli.
+
+### cmd directory
+
+Go is quite permissive in terms of how the project can be structured. Pretty much until `package` rules are followed (single package per dir) it doesn't matter how to layout is set.
+However, there is widly [accepted layout](https://github.com/golang-standards/project-layout) that this project follows. Executables are implemented in the `cmd` directory and each binary is build in a separate dir as well. Code within the cmd should be minimal, ideally only importing other packages and executing.
+
+### `type List []item`
+
+The public API of the todo package is the `List` type. The `List` type is actually the slice of item. It is not common approach to have type that is acutally a slice and have the methods attached to a slice.
+
+```golang
+type item struct {
+    Task        string    `json:"task"`
+    Done        bool      `json:"done"`
+    CreatedAt   time.Time `json:"created_at"`
+    CompletedAt time.Time `json:"completed_at"`
+}
+
+type List []item
+```
+
+### first use of `json:""` annotations
+
+Struct tags are used for adding the metadata in the reflaction package. In this case these are instruction for how to serializing struct into/from JSON.
+There an entire list of such tags [here](https://go.dev/wiki/Well-known-struct-tags#list-of-well-known-struct-tags).
+
+### adding from os.Stdin
+
+The option `-add` allows adding tasks via pipe like `echo "task 1" | go run . -add`. The api is a bit awkward, since there is also `go run . -task "task 1"` as well. But the stdin implementation is another interesting io.Reader example.
+
+```golang
+tasks := make([]string, 0)
+s := bufio.NewScanner(r)
+for s.Scan() {
+    if err := s.Err(); err != nil {
+        return nil, err
+    }
+
+    if len(s.Text()) == 0 {
+        return nil, fmt.Errorf("task cannot be blank")
+
+    }
+    tasks = append(tasks, s.Text())
+
+}
+```
+
+Default split is the newline, so calling `echo "1\n2"  | go run . -add` would add two tasks.
+
+## mdp
+
+Markdown previewer.
+
+### Using bluemonday and blackfriday dependencies
+
+### Templating
+
+Go has a templating library in the stdlib. The usage is here:
+
+```golang
+var t *template.Template
+var err error
+
+if tFname != "" {
+    if t, err = template.ParseFiles(tFname); err != nil {
+        return nil, err
+    }
+} else {
+    if t, err = template.New("mdp").Parse(defaultTemplate); err != nil {
+        return nil, err
+    }
+}
+
+c := content{
+    Title: "Markdown preview tool",
+    Body:  template.HTML(body),
+}
+
+var buffer bytes.Buffer
+if err := t.Execute(&buffer, c); err != nil {
+    return nil, err
+}
+```
+
+It is not very well explained how templating works in Go.
 
 ## pScan
 

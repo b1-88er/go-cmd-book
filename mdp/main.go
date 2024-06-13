@@ -115,18 +115,19 @@ func run(filename string, tFname string, out io.Writer, skipPreview bool) error 
 	return preview(outName)
 }
 
-func parseContent(input []byte, tFname string) ([]byte, error) {
+func parseContent(input []byte, tFname string) (io.Reader, error) {
 	output := blackfriday.Run(input)
 	body := bluemonday.UGCPolicy().SanitizeBytes(output)
 
-	t, err := template.New("mdp").Parse(defaultTemplate)
-	if err != nil {
-		return nil, err
-	}
+	var t *template.Template
+	var err error
 
 	if tFname != "" {
-		t, err = template.ParseFiles(tFname)
-		if err != nil {
+		if t, err = template.ParseFiles(tFname); err != nil {
+			return nil, err
+		}
+	} else {
+		if t, err = template.New("mdp").Parse(defaultTemplate); err != nil {
 			return nil, err
 		}
 	}
@@ -140,9 +141,13 @@ func parseContent(input []byte, tFname string) ([]byte, error) {
 	if err := t.Execute(&buffer, c); err != nil {
 		return nil, err
 	}
-	return buffer.Bytes(), nil
+	return &buffer, nil
 }
 
-func saveHTML(outFname string, data []byte) error {
-	return os.WriteFile(outFname, data, 0644)
+func saveHTML(outFname string, data io.Reader) error {
+	bytes, err := io.ReadAll(data)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(outFname, bytes, 0644)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -18,16 +19,13 @@ const (
 func TestParseContent(t *testing.T) {
 	input, err := os.ReadFile(inputFile)
 	assert.Nil(t, err)
-
 	result, err := parseContent(input, "")
-
 	assert.Nil(t, err)
-
 	expected, err := os.ReadFile(goldenFile)
-
 	assert.Nil(t, err)
-
-	assert.Equal(t, string(expected), string(result))
+	output, err := io.ReadAll(result)
+	assert.NoError(t, err)
+	assert.Equal(t, string(expected), string(output))
 	os.Remove(resultFile)
 }
 
